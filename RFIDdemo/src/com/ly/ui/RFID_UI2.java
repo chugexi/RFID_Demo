@@ -58,6 +58,7 @@ class newFrame extends JFrame {
 //	JTextField name;
 //	JTextField gender;
 	
+	
 	JTextField tReadID;
 
 	public newFrame(Employee em) {
