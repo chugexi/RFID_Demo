@@ -38,6 +38,7 @@ public class Data_processing {
 		}
 
 		String newStr = sb.toString();
+		newStr = newStr.replace(" ", "");
 		System.out.println(newStr);
 		System.out.println("\n");
 		return newStr;

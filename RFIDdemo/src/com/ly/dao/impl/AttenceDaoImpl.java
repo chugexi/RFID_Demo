@@ -22,49 +22,56 @@ public class AttenceDaoImpl implements AttenceDao {
 		today = df.format(date);
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.ly.dao.impl.AttenceDao#signIn(com.ly.domain.Attence)
 	 */
 	@Override
 	public void signIn(Attence attence) {
 		try {
 			QueryRunner runner = new QueryRunner();
-			String sql = "insert into attence(day_id,signintime,signouttime,handletime,name) values(?,?,?,?,?)";
+			String sql = "insert into attence(day_id,signintime,signouttime,handletime,name,result) values(?,?,?,?,?,?)";
 			Object params[] = { attence.getDay_id(), attence.getSignintime(), attence.getSignouttime(),
-					attence.getHandletime(),attence.getName()};
-			runner.update(JdbcUtils.getConnection(),sql, params);
+					attence.getHandletime(), attence.getName(), attence.getResult() };
+			runner.update(JdbcUtils.getConnection(), sql, params);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.ly.dao.impl.AttenceDao#signOut(com.ly.domain.Attence)
 	 */
 	@Override
 	public void signOut(Attence attence) {
 		try {
 			QueryRunner runner = new QueryRunner(JdbcUtils.getDataSource());
-			String sql = "update attence set signouttime=?,handletime=? where day_id=?";
-			Object params[] = { attence.getSignouttime(), attence.getHandletime(), attence.getDay_id() };
+			String sql = "update attence set signouttime=?,handletime=?,result=? where day_id=?";
+			Object params[] = { attence.getSignouttime(), attence.getHandletime(), attence.getDay_id(),
+					attence.getResult() };
 			runner.update(sql, params);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
-	
-	public void delete(String employee_id){
-		
+
+	public void delete(String employee_id) {
+
 		try {
 			QueryRunner runner = new QueryRunner();
-			String sql = "delete from attence where day_id like ?";			
-			runner.update(JdbcUtils.getConnection(),sql , "%"+employee_id);
+			String sql = "delete from attence where day_id like ?";
+			runner.update(JdbcUtils.getConnection(), sql, "%" + employee_id);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.ly.dao.impl.AttenceDao#getTodayAll()
 	 */
 	@Override
@@ -79,7 +86,9 @@ public class AttenceDaoImpl implements AttenceDao {
 		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.ly.dao.impl.AttenceDao#getAll()
 	 */
 	@Override
@@ -93,14 +102,29 @@ public class AttenceDaoImpl implements AttenceDao {
 			throw new RuntimeException(e);
 		}
 	}
-	
-	public Attence find(String day_id){
-		try{
+
+	public Attence find(String day_id) {
+		try {
 			QueryRunner runner = new QueryRunner(JdbcUtils.getDataSource());
-			String sql="select * from attence where day_id=?";			
-			return (Attence) runner.query(sql, day_id, new BeanHandler(Employee.class));
-			}catch(Exception e){
-				throw new RuntimeException(e);
-			}
+			String sql = "select * from attence where day_id=?";
+			return (Attence) runner.query(sql, day_id, new BeanHandler(Attence.class));
+		} catch (Exception e) {
+
+			throw new RuntimeException(e);
+		}
 	}
+	
+	public List<Attence> getOneDayAll(String day){
+		try {
+			QueryRunner runner = new QueryRunner(JdbcUtils.getDataSource());
+			String sql = "select * from attence whewe day_id like ? order by handletime desc";
+			return (List<Attence>) runner.query(sql, day + "%", new BeanListHandler(Attence.class));
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		
+		
+		
+	}
+
 }

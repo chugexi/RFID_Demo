@@ -8,6 +8,7 @@ public class Attence {
 	private long signouttime=0;
 	private long handletime=0;
 	private String name;
+	private String result;
 	public String getDay_id() {
 		return day_id;
 	}
@@ -37,6 +38,12 @@ public class Attence {
 	}
 	public void setName(String name) {
 		this.name = name;
+	}
+	public String getResult() {
+		return result;
+	}
+	public void setResult(String result) {
+		this.result = result;
 	}
 	
 	

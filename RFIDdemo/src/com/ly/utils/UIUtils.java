@@ -19,7 +19,7 @@ public class UIUtils {
 	static JTable employeejtable;
 	static JTable myjtable;
 	static String[] Names = { "姓名", "签到时间", "签退时间", "操作时间" };
-	
+	static String[] Namess = { "姓名", "签到时间", "签退时间", "操作提示" };
 	public static JTable refresh(JTable jtable){
 		
 		myjtable = jtable;
@@ -39,6 +39,36 @@ public class UIUtils {
 			}
 		}
 		myjtable = new JTable(xiba, Names);
+		myjtable.setRowHeight(50);
+		myjtable.setEnabled(false);
+		DefaultTableCellRenderer tcr = new DefaultTableCellRenderer();
+		tcr.setHorizontalAlignment(SwingConstants.CENTER);
+		myjtable.setDefaultRenderer(Object.class, tcr);
+		myjtable.setFont(new Font("宋体", 1, 15));
+		
+		return myjtable;
+		
+	}
+	
+	public static JTable refresh2(JTable jtable){
+		
+		myjtable = jtable;
+		SignService service = new SignServiceImpl();
+		List<Attence> list = service.getTodayAll();
+		Object[][] xiba = new Object[list.size()][4];
+		for (int i = 0; i < list.size(); i++) {
+			Attence attence = list.get(i);
+			String[] str = { attence.getName(), new Date(attence.getSignintime()).toLocaleString(),
+					new Date(attence.getSignouttime()).toLocaleString(),
+					"操作成功"};
+			if (str[2].equals(new Date(0).toLocaleString())) {
+				str[2] = "无";
+			}
+			for (int j = 0; j < 4; j++) {
+				xiba[i][j] = str[j];
+			}
+		}
+		myjtable = new JTable(xiba, Namess);
 		myjtable.setRowHeight(50);
 		myjtable.setEnabled(false);
 		DefaultTableCellRenderer tcr = new DefaultTableCellRenderer();

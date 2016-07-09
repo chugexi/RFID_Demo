@@ -17,4 +17,6 @@ public interface AttenceDao {
 	void delete(String employee_id);
 	
 	Attence find(String day_id);
+	
+	List<Attence> getOneDayAll(String day);
 }

@@ -1,16 +1,20 @@
 package com.ly.service.impl;
 
+import java.awt.Toolkit;
+import java.io.IOException;
 import java.sql.Connection;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Iterator;
+
 import java.util.List;
+import java.util.Properties;
+
+import javax.swing.JOptionPane;
 
 import com.ly.dao.AttenceDao;
 import com.ly.dao.EmployeeDao;
 import com.ly.dao.Employee_AttenceDao;
-import com.ly.dao.impl.AttenceDaoImpl;
-import com.ly.dao.impl.Employee_AttenceDaoImpl;
+
 import com.ly.domain.Attence;
 import com.ly.domain.Employee;
 import com.ly.factory.DaoFactory;
@@ -25,21 +29,35 @@ public class SignServiceImpl implements SignService {
 	private AttenceDao adao = DaoFactory.getInstance().creatDao(AttenceDao.class);
 	private long time;
 	private Date date;
-
+	private static Properties timeconfig = new Properties();
 	
+
 	public void sign(String id){
+		try {
+			timeconfig.load(SignServiceImpl.class.getClassLoader().getResourceAsStream("time.properties"));
+		} catch (IOException e) {
+			throw new RuntimeException();
+		}
+		System.out.println(timeconfig.getProperty("signinMin"));
+		System.out.println(timeconfig.getProperty("signinMax"));
+		System.out.println( timeconfig.getProperty("signoutMin"));
+		System.out.println(timeconfig.getProperty("signoutMax"));
+		
 		date = new Date();
-		if(TimeUtils.isInDate(date, "07:30:00", "08:00:00")){
+		if(TimeUtils.isInDate(date, timeconfig.getProperty("signinMin"), timeconfig.getProperty("signinMax"))){			
 			signIn(id);
 			System.out.println("qiandao");
+			return;
 		}
 		
-		else if(TimeUtils.isInDate(date, "11:00:00", "17:30:00")){
+		if(TimeUtils.isInDate(date, timeconfig.getProperty("signoutMin"),timeconfig.getProperty("signoutMax"))){
 			signOut(id);
 			System.out.println("qiantui");
+			return;
 		}
-		else System.out.println("sfasfafa");
-			
+		Toolkit.getDefaultToolkit().beep();
+		JOptionPane.showMessageDialog(null, "不在签到时间", "提示", JOptionPane.INFORMATION_MESSAGE);
+			System.out.println("不在签到时间");
 		
 		
 	}
@@ -48,27 +66,40 @@ public class SignServiceImpl implements SignService {
 	 */
 	@Override
 	public void signIn(String id) {
-		Connection conn = null;
 		date = new Date();
-		Attence attence = new Attence();
+		
 		time = System.currentTimeMillis();
 
 		SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
 		String today = df.format(date);
 		String day_id = today + "_" + id;
-        Employee employee = edao.find(id);
-		attence.setDay_id(day_id);
-		attence.setSignintime(time);
-		attence.setHandletime(time);
-		attence.setName(employee.getName());
-		try {
-			JdbcUtils.startTransaction();
-			adao.signIn(attence);
-			eadao.add(id, day_id);
-			JdbcUtils.commitTransaction();
-		} finally {
-			JdbcUtils.closeConnection();
+		Attence attence = new Attence();
+		attence = adao.find(day_id);
+		if(attence==null){
+			attence = new Attence();
+			System.out.println("签到");
+			Connection conn = null;
+			
+	        Employee employee = edao.find(id);
+			attence.setDay_id(day_id);
+			attence.setSignintime(time);
+			attence.setHandletime(time);
+			attence.setName(employee.getName());
+			try {
+				JdbcUtils.startTransaction();
+				adao.signIn(attence);
+				eadao.add(id, day_id);
+				JdbcUtils.commitTransaction();
+			} finally {
+				JdbcUtils.closeConnection();
+			}
 		}
+		if(attence.getSignintime()!=0){
+			System.out.println("已签到");
+			return;
+		}
+		
+		
 
 	}
 
@@ -78,6 +109,7 @@ public class SignServiceImpl implements SignService {
 	@Override
 	public void signOut(String id) {
 		
+		
 		date = new Date();
 		time = System.currentTimeMillis();
 		SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
@@ -86,6 +118,10 @@ public class SignServiceImpl implements SignService {
 		Attence attence = adao.find(day_id);
 		if(attence == null){
 			System.out.println("为签到");
+			return;
+		}
+		if(attence.getSignouttime()!=0){
+			System.out.println("已签退");
 			return;
 		}
 //		attence.setDay_id(day_id);
@@ -106,6 +142,10 @@ public class SignServiceImpl implements SignService {
 	
 	public List<Attence> getAll(){		
 		return adao.getAll();		
+	}
+	
+	public List<Attence> getOneDayAll(String day){		
+		return adao.getOneDayAll(day);		
 	}
 	
 	

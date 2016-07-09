@@ -8,7 +8,7 @@ public class Employee {
 	private String gender;
 	private String position;
 	private String department;
-	private String rfid_id = "";
+	private String rfid_id ;
 	public String getId() {
 		return id;
 	}

@@ -10,19 +10,29 @@ import java.awt.LayoutManager;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Properties;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
@@ -40,10 +50,12 @@ import com.ly.service.EmployeeService;
 import com.ly.service.SignService;
 import com.ly.service.impl.EmployeeServiceImpl;
 import com.ly.service.impl.SignServiceImpl;
+import com.ly.test.Test2;
 import com.ly.thread.MyThread;
 import com.ly.utils.UIUtils;
 
 import gnu.io.CommPortIdentifier;
+import gnu.io.SerialPort;
 
 public class RFID_UI2 {
 
@@ -53,106 +65,186 @@ public class RFID_UI2 {
 }
 
 class newFrame extends JFrame {
-
-//	JTextField id;
-//	JTextField name;
-//	JTextField gender;
-	
-	
+	Employee em;
 	JTextField tReadID;
 
-	public newFrame(Employee em) {
-		setLayout(new BorderLayout());
-		JPanel jpnew_box = new JPanel();
-		jpnew_box.setLayout(new BoxLayout(jpnew_box, BoxLayout.Y_AXIS));
+	String gender;
 
-		JPanel jpnew_box_6 = new JPanel();
+	JComboBox<String> position;
+	JComboBox<String> department;
+
+	String[] positions = { "经理", "秘书", "总监", "接线员", "跟班" };
+	String[] departments = { "人力资源", "市场调查", "后勤管理", "公关", "市场营销" };
+	
+	 JTextField jtnew_box_1;
+	 JTextField jtnew_box_2;
+	 JRadioButton jtnew_box_3_male;
+	 JRadioButton jtnew_box_3_female;
+
+	public newFrame(Employee em) {
+		this.em = em;
+		setLayout(new FlowLayout());
+		Box baseBox;
+		Box boxV1, boxV2, boxV3, boxV4, boxV5, boxV6, boxV7;
+		// jpnew_box.setLayout(new BoxLayout(jpnew_box, BoxLayout.Y_AXIS));
+
 		JButton bReadID = new JButton("读卡号");
+		JLabel lbReadID = new JLabel("卡号:");
 		tReadID = new JTextField(16);
 		bReadID.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
 				SimpleRW simple = SimpleRW.getInstance();
 				String rfid_id = simple.findCard();
 				tReadID.setText(rfid_id);
-				
 			}
 		});
+
 		bReadID.setPreferredSize(new Dimension(80, 30));
-		
-		tReadID.setEnabled(false);
-		JLabel space = new JLabel("                 ");
-		jpnew_box_6.add(space);
-		jpnew_box_6.add(tReadID);
-		jpnew_box_6.add(bReadID);
 
-		JPanel jpnew_box_1 = new JPanel();
-		final JTextField jtnew_box_1 = new JTextField(16);
-		jtnew_box_1.setEnabled(false);
+		tReadID.setEditable(false);
+		JLabel space = new JLabel("                                ");
+		// jpnew_box_6.add(space);
+		// jpnew_box_6.add(tReadID);
+		// jpnew_box_6.add(bReadID);
+
+		jtnew_box_1 = new JTextField(12);
 		jtnew_box_1.setText(em.getId());
-		JLabel jlnew_box_1 = new JLabel("工号");		
-		jpnew_box_1.add(jtnew_box_1);
-		jpnew_box_1.add(jlnew_box_1);
-		// jpmc_box_1.setPreferredSize(new Dimension(8, 20));
+		jtnew_box_1.setEditable(false);
+		JLabel jlnew_box_1 = new JLabel("工号:");
 
-		JPanel jpnew_box_2 = new JPanel();
-		final JTextField jtnew_box_2 = new JTextField(16);
+		jtnew_box_2 = new JTextField(12);
 		jtnew_box_2.setText(em.getName());
-		JLabel jlnew_box_2 = new JLabel("姓名");
-		jpnew_box_2.add(jtnew_box_2);
-		jpnew_box_2.add(jlnew_box_2);
-		// jpmc_box_2.setPreferredSize(new Dimension(8, 20));
+		JLabel jlnew_box_2 = new JLabel("姓名:");
 
-		JPanel jpnew_box_3 = new JPanel();
-		final JTextField jtnew_box_3 = new JTextField(16);
-		jtnew_box_3.setText(em.getGender());
-		JLabel jlnew_box_3 = new JLabel("性别");
-		jpnew_box_3.add(jtnew_box_3);
-		jpnew_box_3.add(jlnew_box_3);
-		// jpmc_box_3.setPreferredSize(new Dimension(8, 20));
+		jtnew_box_3_male = new JRadioButton("男");
+		jtnew_box_3_female = new JRadioButton("女");
+		ButtonGroup gender_group = new ButtonGroup();
+		jtnew_box_3_male.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				gender = "男";
+			}
+		});
+		jtnew_box_3_female.addActionListener(new ActionListener() {
 
-		JPanel jpnew_box_4 = new JPanel();
-		final JTextField jtnew_box_4 = new JTextField(16);
-		jtnew_box_4.setText(em.getPosition());
-		JLabel jlnew_box_4 = new JLabel("职位");
-		jpnew_box_4.add(jtnew_box_4);
-		jpnew_box_4.add(jlnew_box_4);
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				gender = "女";
+			}
+		});
+		gender_group.add(jtnew_box_3_male);
+		gender_group.add(jtnew_box_3_female);
+		JLabel jlnew_box_3 = new JLabel("性别:");
+		gender = em.getGender();
+		if (gender.equals("男")) {
+			jtnew_box_3_male.setSelected(true);
+		}
+		if (gender.equals("女")) {
+			jtnew_box_3_female.setSelected(true);
+		}
 
-		JPanel jpnew_box_5 = new JPanel();
-		final JTextField jtnew_box_5 = new JTextField(16);
-		jtnew_box_5.setText(em.getDepartment());
-		JLabel jlnew_box_5 = new JLabel("部门");
-		jpnew_box_5.add(jtnew_box_5);
-		jpnew_box_5.add(jlnew_box_5);
+		position = new JComboBox<String>();
+		for (int i = 0; i < positions.length; i++) {
+			position.addItem(positions[i]);
+		}
+		JLabel jlnew_box_4 = new JLabel("职位:");
+		String pos = em.getPosition();
+		for (int i = 0; i < positions.length; i++) {
+			if (position.getItemAt(i).equals(pos)) {
+				position.setSelectedIndex(i);
+			}
+		}
 
-		jpnew_box.add(jpnew_box_6);
-		jpnew_box.add(jpnew_box_1);
-		jpnew_box.add(jpnew_box_2);
-		jpnew_box.add(jpnew_box_3);
-		jpnew_box.add(jpnew_box_4);
-		jpnew_box.add(jpnew_box_5);
+		department = new JComboBox<String>();
+		for (int i = 0; i < departments.length; i++) {
+			department.addItem(departments[i]);
+		}
+		JLabel jlnew_box_5 = new JLabel("部门:");
+		String dep = em.getDepartment();
+		for (int i = 0; i < departments.length; i++) {
+			if (department.getItemAt(i).equals(dep)) {
+				department.setSelectedIndex(i);
 
-		JButton jbmc_add = new JButton("修改");
-		
-		jbmc_add.addActionListener(new ActionListener() {
-			
+			}
+		}
+
+		boxV1 = Box.createHorizontalBox();
+		boxV2 = Box.createHorizontalBox();
+		boxV3 = Box.createHorizontalBox();
+		boxV4 = Box.createHorizontalBox();
+		boxV5 = Box.createHorizontalBox();
+		boxV6 = Box.createHorizontalBox();
+		boxV7 = Box.createHorizontalBox();
+
+		boxV1.add(jlnew_box_1);
+		boxV1.add(Box.createHorizontalStrut(8));
+		boxV1.add(jtnew_box_1);
+
+		boxV2.add(jlnew_box_2);
+		boxV2.add(Box.createHorizontalStrut(8));
+		boxV2.add(jtnew_box_2);
+
+		boxV3.add(jlnew_box_3);
+		boxV3.add(Box.createHorizontalStrut(8));
+		boxV3.add(jtnew_box_3_male);
+		boxV3.add(Box.createHorizontalStrut(8));
+		boxV3.add(jtnew_box_3_female);
+		boxV3.add(Box.createHorizontalStrut(8));
+		boxV3.add(space);
+
+		boxV4.add(jlnew_box_4);
+		boxV4.add(Box.createHorizontalStrut(8));
+		boxV4.add(position);
+
+		boxV5.add(jlnew_box_5);
+		boxV5.add(Box.createHorizontalStrut(8));
+		boxV5.add(department);
+
+		JButton jbmc_update = new JButton("修改");
+		boxV6.add(jbmc_update);
+		boxV6.add(Box.createHorizontalStrut(8));
+		boxV6.add(bReadID);
+
+		boxV7.add(lbReadID);
+		boxV7.add(Box.createHorizontalStrut(8));
+		boxV7.add(tReadID);
+
+		baseBox = Box.createVerticalBox();
+		baseBox.add(boxV1);
+		baseBox.add(Box.createVerticalStrut(10));
+		baseBox.add(boxV2);
+		baseBox.add(Box.createVerticalStrut(10));
+		baseBox.add(boxV3);
+		baseBox.add(Box.createVerticalStrut(10));
+		baseBox.add(boxV4);
+		baseBox.add(Box.createVerticalStrut(10));
+		baseBox.add(boxV5);
+		baseBox.add(Box.createVerticalStrut(10));
+		baseBox.add(boxV7);
+		baseBox.add(Box.createVerticalStrut(10));
+		baseBox.add(boxV6);
+
+		jbmc_update.addActionListener(new ActionListener() {
+
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				// TODO Auto-generated method stub
 				Employee employee = new Employee();
 				employee.setId(jtnew_box_1.getText());
 				employee.setName(jtnew_box_2.getText());
-				employee.setGender(jtnew_box_3.getText());
-				employee.setPosition(jtnew_box_4.getText());
-				employee.setDepartment(jtnew_box_5.getText());
+				employee.setGender(gender);
+				employee.setPosition((String) position.getSelectedItem());
+				employee.setDepartment((String) department.getSelectedItem());
 				employee.setRfid_id(tReadID.getText());
-				
+
 				EmployeeService service = new EmployeeServiceImpl();
-				
-				
-				if(employee.getId().trim().equals("")||employee.getName().trim().equals("")||employee.getGender().trim().equals("")||employee.getPosition().trim().equals("")||employee.getDepartment().trim().equals("")){
+
+				if (employee.getId().trim().equals("") || employee.getName().trim().equals("")
+						|| employee.getGender().trim().equals("") || employee.getPosition().trim().equals("")
+						|| employee.getDepartment().trim().equals("")) {
 					Toolkit.getDefaultToolkit().beep();
 					JOptionPane.showMessageDialog(null, "修改失败", "错误", JOptionPane.ERROR_MESSAGE);
 					return;
@@ -168,10 +260,10 @@ class newFrame extends JFrame {
 				}
 			}
 		});
-		add(jpnew_box,BorderLayout.CENTER);
-		add(jbmc_add, BorderLayout.SOUTH);
 
-		setSize(430, 330);
+		add(baseBox);
+
+		setBounds(500, 300, 430, 330);
 		setVisible(true);
 
 		validate();
@@ -181,68 +273,138 @@ class newFrame extends JFrame {
 
 class addEmployee extends JFrame {
 
-	JTextField id;
-	JTextField name;
-	JTextField gender;
+	JTextField tReadID;
+
+	String gender;
+
+	JComboBox<String> position;
+	JComboBox<String> department;
+
+	String[] positions = { "经理", "秘书", "总监", "接线员", "跟班" };
+	String[] departments = { "人力资源", "市场调查", "后勤管理", "公关", "市场营销" };
 
 	public addEmployee() {
-		setLayout(new BorderLayout());
-		JPanel jpnew_box = new JPanel();
-		jpnew_box.setLayout(new BoxLayout(jpnew_box, BoxLayout.Y_AXIS));
+		setLayout(new FlowLayout());
+		Box baseBox;
+		Box boxV1, boxV2, boxV3, boxV4, boxV5, boxV6, boxV7;
+		// jpnew_box.setLayout(new BoxLayout(jpnew_box, BoxLayout.Y_AXIS));
 
-		JPanel jpnew_box_6 = new JPanel();
 		JButton bReadID = new JButton("读卡号");
-		
+		JLabel lbReadID = new JLabel("卡号:");
+		tReadID = new JTextField(16);
+		bReadID.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				SimpleRW simple = SimpleRW.getInstance();
+				String rfid_id = simple.findCard();
+				tReadID.setText(rfid_id);
+			}
+		});
+
 		bReadID.setPreferredSize(new Dimension(80, 30));
-		JTextField tReadID = new JTextField(16);
-		tReadID.setEnabled(false);
-		JLabel space = new JLabel("                 ");
-		jpnew_box_6.add(space);
-		jpnew_box_6.add(tReadID);
-		jpnew_box_6.add(bReadID);
 
-		JPanel jpnew_box_1 = new JPanel();
-		final JTextField jtnew_box_1 = new JTextField(16);
-		JLabel jlnew_box_1 = new JLabel("工号");
-		jpnew_box_1.add(jtnew_box_1);
-		jpnew_box_1.add(jlnew_box_1);
-		// jpmc_box_1.setPreferredSize(new Dimension(8, 20));
+		tReadID.setEditable(false);
+		JLabel space = new JLabel("                                ");
+		// jpnew_box_6.add(space);
+		// jpnew_box_6.add(tReadID);
+		// jpnew_box_6.add(bReadID);
 
-		JPanel jpnew_box_2 = new JPanel();
-		final JTextField jtnew_box_2 = new JTextField(16);
-		JLabel jlnew_box_2 = new JLabel("姓名");
-		jpnew_box_2.add(jtnew_box_2);
-		jpnew_box_2.add(jlnew_box_2);
-		// jpmc_box_2.setPreferredSize(new Dimension(8, 20));
+		final JTextField jtnew_box_1 = new JTextField(12);
+		JLabel jlnew_box_1 = new JLabel("工号:");
 
-		JPanel jpnew_box_3 = new JPanel();
-		final JTextField jtnew_box_3 = new JTextField(16);
-		JLabel jlnew_box_3 = new JLabel("性别");
-		jpnew_box_3.add(jtnew_box_3);
-		jpnew_box_3.add(jlnew_box_3);
-		// jpmc_box_3.setPreferredSize(new Dimension(8, 20));
+		final JTextField jtnew_box_2 = new JTextField(12);
+		JLabel jlnew_box_2 = new JLabel("姓名:");
 
-		JPanel jpnew_box_4 = new JPanel();
-		final JTextField jtnew_box_4 = new JTextField(16);
-		JLabel jlnew_box_4 = new JLabel("职位");
-		jpnew_box_4.add(jtnew_box_4);
-		jpnew_box_4.add(jlnew_box_4);
+		final JRadioButton jtnew_box_3_male = new JRadioButton("男");
+		final JRadioButton jtnew_box_3_female = new JRadioButton("女");
+		ButtonGroup gender_group = new ButtonGroup();
+		jtnew_box_3_male.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				gender = "男";
+			}
+		});
+		jtnew_box_3_female.addActionListener(new ActionListener() {
 
-		JPanel jpnew_box_5 = new JPanel();
-		final JTextField jtnew_box_5 = new JTextField(16);
-		JLabel jlnew_box_5 = new JLabel("部门");
-		jpnew_box_5.add(jtnew_box_5);
-		jpnew_box_5.add(jlnew_box_5);
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				gender = "女";
+			}
+		});
+		gender_group.add(jtnew_box_3_male);
+		gender_group.add(jtnew_box_3_female);
+		JLabel jlnew_box_3 = new JLabel("性别:");
 
-		jpnew_box.add(jpnew_box_6);
-		jpnew_box.add(jpnew_box_1);
-		jpnew_box.add(jpnew_box_2);
-		jpnew_box.add(jpnew_box_3);
-		jpnew_box.add(jpnew_box_4);
-		jpnew_box.add(jpnew_box_5);
+		position = new JComboBox<String>();
+		for (int i = 0; i < positions.length; i++) {
+			position.addItem(positions[i]);
+		}
+		JLabel jlnew_box_4 = new JLabel("职位:");
+
+		department = new JComboBox<String>();
+		for (int i = 0; i < departments.length; i++) {
+			department.addItem(departments[i]);
+		}
+		JLabel jlnew_box_5 = new JLabel("部门:");
+
+		boxV1 = Box.createHorizontalBox();
+		boxV2 = Box.createHorizontalBox();
+		boxV3 = Box.createHorizontalBox();
+		boxV4 = Box.createHorizontalBox();
+		boxV5 = Box.createHorizontalBox();
+		boxV6 = Box.createHorizontalBox();
+		boxV7 = Box.createHorizontalBox();
+
+		boxV1.add(jlnew_box_1);
+		boxV1.add(Box.createHorizontalStrut(8));
+		boxV1.add(jtnew_box_1);
+
+		boxV2.add(jlnew_box_2);
+		boxV2.add(Box.createHorizontalStrut(8));
+		boxV2.add(jtnew_box_2);
+
+		boxV3.add(jlnew_box_3);
+		boxV3.add(Box.createHorizontalStrut(8));
+		boxV3.add(jtnew_box_3_male);
+		boxV3.add(Box.createHorizontalStrut(8));
+		boxV3.add(jtnew_box_3_female);
+		boxV3.add(Box.createHorizontalStrut(8));
+		boxV3.add(space);
+
+		boxV4.add(jlnew_box_4);
+		boxV4.add(Box.createHorizontalStrut(8));
+		boxV4.add(position);
+
+		boxV5.add(jlnew_box_5);
+		boxV5.add(Box.createHorizontalStrut(8));
+		boxV5.add(department);
 
 		JButton jbmc_add = new JButton("添加");
-		
+		boxV6.add(jbmc_add);
+		boxV6.add(Box.createHorizontalStrut(8));
+		boxV6.add(bReadID);
+
+		boxV7.add(lbReadID);
+		boxV7.add(Box.createHorizontalStrut(8));
+		boxV7.add(tReadID);
+
+		baseBox = Box.createVerticalBox();
+		baseBox.add(boxV1);
+		baseBox.add(Box.createVerticalStrut(10));
+		baseBox.add(boxV2);
+		baseBox.add(Box.createVerticalStrut(10));
+		baseBox.add(boxV3);
+		baseBox.add(Box.createVerticalStrut(10));
+		baseBox.add(boxV4);
+		baseBox.add(Box.createVerticalStrut(10));
+		baseBox.add(boxV5);
+		baseBox.add(Box.createVerticalStrut(10));
+		baseBox.add(boxV7);
+		baseBox.add(Box.createVerticalStrut(10));
+		baseBox.add(boxV6);
+
 		jbmc_add.addActionListener(new ActionListener() {
 
 			@Override
@@ -250,13 +412,27 @@ class addEmployee extends JFrame {
 				Employee employee = new Employee();
 				employee.setId(jtnew_box_1.getText());
 				employee.setName(jtnew_box_2.getText());
-				employee.setGender(jtnew_box_3.getText());
-				employee.setPosition(jtnew_box_4.getText());
-				employee.setDepartment(jtnew_box_5.getText());
+				employee.setGender(gender);
+				employee.setPosition((String) position.getSelectedItem());
+				employee.setDepartment((String) department.getSelectedItem());
+				
+				System.out.println(tReadID.getText());
+				
+				if (!tReadID.getText().trim().equals("")) {
+					employee.setRfid_id(tReadID.getText());
+				}
 				EmployeeService service = new EmployeeServiceImpl();
-				if(employee.getId().trim().equals("")||employee.getName().trim().equals("")||employee.getGender().trim().equals("")||employee.getPosition().trim().equals("")||employee.getDepartment().trim().equals("")){
+				try {
+					if (employee.getId().trim().equals("") || employee.getName().trim().equals("")
+							|| employee.getGender().trim().equals("") || employee.getPosition().trim().equals("")
+							|| employee.getDepartment().trim().equals("")) {
+						Toolkit.getDefaultToolkit().beep();
+						JOptionPane.showMessageDialog(null, "添加失败", "错误", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+				} catch (Exception exx) {
 					Toolkit.getDefaultToolkit().beep();
-					JOptionPane.showMessageDialog(null, "添加失败", "错误", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(null, "请填写完整信息", "提示", JOptionPane.INFORMATION_MESSAGE);
 					return;
 				}
 				try {
@@ -270,28 +446,40 @@ class addEmployee extends JFrame {
 				}
 			}
 		});
-		
-		add(jpnew_box,BorderLayout.CENTER);
-		add(jbmc_add, BorderLayout.SOUTH);
 
-		setSize(430, 330);
+		add(baseBox);
+
+		setBounds(500, 300, 430, 330);
 		setVisible(true);
 
 		validate();
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 	}
 }
+
 class MyFrame1 extends JFrame {
 	EmployeeService service_e = new EmployeeServiceImpl();
 	SignService service = new SignServiceImpl();
 
+	private static Properties timeconfig = new Properties();
+	String path = MyFrame1.class.getClassLoader().getResource("time.properties").toString();
+	String path2 = path.substring(6, path.length());
+
+	static {
+		try {
+			timeconfig.load(MyFrame1.class.getClassLoader().getResourceAsStream("time.properties"));
+		} catch (IOException e) {
+			throw new RuntimeException();
+		}
+	}
+
 	JTabbedPane p;
 
-
-	//串口相关
+	// 串口相关
 	JComboBox<String> cbportList;
 	String portname;
 	JButton bOpenSPort;
+	JButton bCloseSPort;
 	JLabel lSportStatus;
 
 	JPanel jpsr;
@@ -304,7 +492,7 @@ class MyFrame1 extends JFrame {
 	JTable jtasr_re;
 	JTable jtamr_re;
 	JTable jtasign;
-	
+
 	JScrollPane scrollPane;
 	JScrollPane scrollPane_sign;
 	JScrollPane scrollPane_mr;
@@ -313,23 +501,48 @@ class MyFrame1 extends JFrame {
 	JTextField jtst;
 
 	MyPaneUI myui = new MyPaneUI();
+
+	JComboBox<String> cbportList1;
+	JComboBox<String> cbportList2;
+	JComboBox<String> cbportList3;
+	JComboBox<String> cbportList4;
+
+	JComboBox<String> time1;
+	JComboBox<String> time2;
+	JComboBox<String> time3;
+	JComboBox<String> time4;
+	JComboBox<String> time5;
+	JComboBox<String> time6;
+	JComboBox<String> time7;
+	JComboBox<String> time8;
 	
-	SimpleRW simple ;
+	Thread thread;
+	
+	int[] portSet = { 9600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE };
+	FileOutputStream file;
+
+	SimpleRW simple = SimpleRW.getInstance();
 
 	public MyFrame1() {
+		
+		String signinMin = timeconfig.getProperty("signinMin");
+		String signinMax = timeconfig.getProperty("signinMax");
+		String signoutMin = timeconfig.getProperty("signoutMin");
+		String signoutMax = timeconfig.getProperty("signoutMax");
+
+		String inMin[] = signinMin.split(":");
+		String inMax[] = signinMax.split(":");
+		String outMin[] = signoutMin.split(":");
+		String outMax[] = signoutMax.split(":");
+
 		final MyFrame1 my = this;
-		
-		
 
 		getContentPane().setLayout(new BorderLayout());
 		p = new JTabbedPane(JTabbedPane.BOTTOM);
 
-		
-
 		jpsr = new JPanel(new BorderLayout());
 		jpmr = new JPanel(new BorderLayout());
-
-		jpst = new JPanel(new BorderLayout());
+		jpst = new JPanel(null);
 
 		/**************************************************
 		 * 
@@ -337,21 +550,395 @@ class MyFrame1 extends JFrame {
 		 * 
 		 ***************************************************/
 
-		jtst = new JTextField(16);
-		JButton jbst = new JButton("sdfsdfs");
+		String[] baudrate = { "1382400", "921600", "460800", "256000", "230400", "128000", "115200", "76800", "57600",
+				"43000", "38400", "19200", "14400", "9600", "4800", "2400", "1200" };
+		String[] stopbit = { "1", "1.25", "2" };
+		String[] databit = { "5", "6", "7", "8" };
+		String[] checkbit = { "偶校验", "奇校验", "无" };
+		
 
-		jbst.addActionListener(new ActionListener() {
+		String[] hour = { "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14",
+				"15", "16", "17", "18", "19", "20", "21", "22", "23" };
+		String[] minute = { "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14",
+				"15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31",
+				"32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48",
+				"49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59" };
+
+		cbportList1 = new JComboBox<String>();
+		cbportList2 = new JComboBox<String>();
+		cbportList3 = new JComboBox<String>();
+		cbportList4 = new JComboBox<String>();
+
+		time1 = new JComboBox<String>();
+		time2 = new JComboBox<String>();
+		time3 = new JComboBox<String>();
+		time4 = new JComboBox<String>();
+		time5 = new JComboBox<String>();
+		time6 = new JComboBox<String>();
+		time7 = new JComboBox<String>();
+		time8 = new JComboBox<String>();
+
+		for (int i = 0; i < baudrate.length; i++) {
+			cbportList1.addItem(baudrate[i]);
+		}
+
+		for (int i = 0; i < databit.length; i++) {
+			cbportList2.addItem(databit[i]);
+		}
+
+		for (int i = 0; i < stopbit.length; i++) {
+			cbportList3.addItem(stopbit[i]);
+		}
+
+		for (int i = 0; i < checkbit.length; i++) {
+			cbportList4.addItem(checkbit[i]);
+		}
+
+		for (int i = 0; i < hour.length; i++) {
+			time1.addItem(hour[i]);
+		}
+
+		for (int i = 0; i < minute.length; i++) {
+			time2.addItem(minute[i]);
+		}
+
+		for (int i = 0; i < hour.length; i++) {
+			time3.addItem(hour[i]);
+		}
+
+		for (int i = 0; i < minute.length; i++) {
+			time4.addItem(minute[i]);
+		}
+
+		for (int i = 0; i < hour.length; i++) {
+			time5.addItem(hour[i]);
+		}
+
+		for (int i = 0; i < minute.length; i++) {
+			time6.addItem(minute[i]);
+		}
+
+		for (int i = 0; i < hour.length; i++) {
+			time7.addItem(hour[i]);
+		}
+
+		for (int i = 0; i < minute.length; i++) {
+			time8.addItem(minute[i]);
+		}
+
+		for (int i = 0; i < hour.length; i++) {
+			if (time1.getItemAt(i).equals(inMin[0])) {
+				time1.setSelectedIndex(i);
+			}
+		}
+		for (int i = 0; i < minute.length; i++) {
+			if (time2.getItemAt(i).equals(inMin[1])) {
+				time2.setSelectedIndex(i);
+			}
+		}
+
+		for (int i = 0; i < hour.length; i++) {
+			if (time3.getItemAt(i).equals(outMin[0])) {
+				time3.setSelectedIndex(i);
+			}
+		}
+		for (int i = 0; i < minute.length; i++) {
+			if (time4.getItemAt(i).equals(outMin[1])) {
+				time4.setSelectedIndex(i);
+			}
+		}
+
+		for (int i = 0; i < hour.length; i++) {
+			if (time5.getItemAt(i).equals(inMax[0])) {
+				time5.setSelectedIndex(i);
+			}
+		}
+		for (int i = 0; i < minute.length; i++) {
+			if (time6.getItemAt(i).equals(inMax[1])) {
+				time6.setSelectedIndex(i);
+			}
+		}
+
+		for (int i = 0; i < hour.length; i++) {
+			if (time7.getItemAt(i).equals(outMax[0])) {
+				time7.setSelectedIndex(i);
+			}
+		}
+		for (int i = 0; i < minute.length; i++) {
+			if (time8.getItemAt(i).equals(outMax[1])) {
+				time8.setSelectedIndex(i);
+			}
+		}
+		cbportList1.addItemListener(new ItemListener() {
 
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				UIDemo uuuu = UIDemo.getInstance(my);
-				uuuu.run();
-
+			public void itemStateChanged(ItemEvent e) {
+				// TODO Auto-generated method stub
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					
+					String s = (String) cbportList1.getSelectedItem();
+					switch (s) {
+					case "1382400":
+						portSet[0] = 1382400;						
+						break;
+					case "921600":
+						portSet[0] = 921600;						
+						break;
+					case "460800":
+						portSet[0] = 460800;						
+						break;
+					case "256000":
+						portSet[0] = 256000;						
+						break;
+					case "230400":
+						portSet[0] = 230400;						
+						break;
+					case "128000":
+						portSet[0] = 128000;						
+						break;
+					case "115200":
+						portSet[0] = 115200;						
+						break;
+					case "76800":
+						portSet[0] = 76800;						
+						break;
+					case "57600":
+						portSet[0] = 57600;						
+						break;
+					case "43000":
+						portSet[0] = 43000;						
+						break;
+					case "38400":
+						portSet[0] = 38400;						
+						break;
+					case "19200":
+						portSet[0] = 19200;						
+						break;
+					case "14400":
+						portSet[0] = 14400;						
+						break;
+					case "9600":
+						portSet[0] = 9600;						
+						break;
+					case "4800":
+						portSet[0] = 4800;						
+						break;
+					case "2400":
+						portSet[0] = 2400;						
+						break;
+					case "1200":
+						portSet[0] = 1200;						
+						break;
+					default:
+						break;
+					}
+					System.out.println(portSet[0]);
+					
+					simple.portSet(portSet);
+					
+				}
 			}
 		});
 
-		jpst.add(jtst, BorderLayout.NORTH);
-		jpst.add(jbst, BorderLayout.CENTER);
+		cbportList2.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				// TODO Auto-generated method stub
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					String s = (String) cbportList2.getSelectedItem();
+					switch (s) {
+					case "5":
+						portSet[1] = SerialPort.DATABITS_5;
+						break;
+					case "6":
+						portSet[1] = SerialPort.DATABITS_6;
+						break;
+					case "7":
+						portSet[1] = SerialPort.DATABITS_7;
+						break;
+					case "8":
+						portSet[1] = SerialPort.DATABITS_8;
+						break;
+
+					default:
+						break;
+					}
+					System.out.println(portSet[1]);
+					
+					simple.portSet(portSet);
+				}
+			}
+		});
+
+		cbportList3.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				// TODO Auto-generated method stub
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					String s = (String) cbportList3.getSelectedItem();
+					switch (s) {
+					case "1":
+						portSet[2] = SerialPort.STOPBITS_1;
+						break;
+					case "1.25":
+						portSet[2] = SerialPort.STOPBITS_1_5;
+						break;
+					case "2":
+						portSet[2] = SerialPort.STOPBITS_2;
+						break;
+
+					default:
+						break;
+					}
+					System.out.println(portSet[2]);
+					
+					simple.portSet(portSet);
+				}
+			}
+		});
+
+		cbportList4.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				// TODO Auto-generated method stub
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					String s = (String) cbportList4.getSelectedItem();
+					switch (s) {
+					case "奇校验":
+						portSet[3] = SerialPort.PARITY_ODD;
+						break;
+					case "偶校验":
+						portSet[3] = SerialPort.PARITY_EVEN;
+						break;
+					case "无":
+						portSet[3] = SerialPort.PARITY_NONE;
+						break;
+					default:
+						break;
+					}
+					System.out.println(portSet[3]);					
+					simple.portSet(portSet);
+				}
+			}
+		});
+		cbportList1.setSelectedIndex(13);
+		cbportList2.setSelectedIndex(3);
+		cbportList3.setSelectedIndex(0);
+		cbportList4.setSelectedIndex(2);
+
+		cbportList1.setBounds(200, 150, 80, 20);
+		cbportList2.setBounds(200, 200, 80, 20);
+		cbportList3.setBounds(200, 250, 80, 20);
+		cbportList4.setBounds(200, 300, 80, 20);
+
+		JLabel jbaudrate = new JLabel("波特率", JLabel.CENTER);
+		JLabel jdatabit = new JLabel("数据位", JLabel.CENTER);
+		JLabel jstopbit = new JLabel("停止位", JLabel.CENTER);
+		JLabel jcheckbit = new JLabel("校验位", JLabel.CENTER);
+
+		JLabel jsignin = new JLabel("签到时间段", JLabel.CENTER);
+		JLabel jsignout = new JLabel("签退时间段", JLabel.CENTER);
+
+		JLabel t1 = new JLabel(":", JLabel.CENTER);
+		JLabel t2 = new JLabel(":", JLabel.CENTER);
+		JLabel t3 = new JLabel(":", JLabel.CENTER);
+		JLabel t4 = new JLabel(":", JLabel.CENTER);
+		JLabel t5 = new JLabel("~", JLabel.CENTER);
+		JLabel t6 = new JLabel("~", JLabel.CENTER);
+
+		JButton timeset = new JButton("修改考勤时间");
+
+		jbaudrate.setBounds(100, 150, 80, 20);
+		jdatabit.setBounds(100, 200, 80, 20);
+		jstopbit.setBounds(100, 250, 80, 20);
+		jcheckbit.setBounds(100, 300, 80, 20);
+
+		jsignin.setBounds(500, 150, 80, 20);
+		jsignout.setBounds(500, 200, 80, 20);
+
+		t1.setBounds(630, 150, 40, 20);
+		t2.setBounds(630, 200, 40, 20);
+		t3.setBounds(780, 150, 40, 20);
+		t4.setBounds(780, 200, 40, 20);
+		t5.setBounds(705, 150, 40, 20);
+		t6.setBounds(705, 200, 40, 20);
+
+		time1.setBounds(600, 150, 40, 20);
+		time2.setBounds(660, 150, 40, 20);
+		time3.setBounds(600, 200, 40, 20);
+		time4.setBounds(660, 200, 40, 20);
+		time5.setBounds(750, 150, 40, 20);
+		time6.setBounds(810, 150, 40, 20);
+		time7.setBounds(750, 200, 40, 20);
+		time8.setBounds(810, 200, 40, 20);
+
+		timeset.setBounds(620, 250, 120, 30);
+
+		timeset.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String signinMin = (String) time1.getSelectedItem() + ":" + (String) time2.getSelectedItem() + ":00";
+				String signoutMin = (String) time3.getSelectedItem() + ":" + (String) time4.getSelectedItem() + ":00";
+				String signinMax = (String) time5.getSelectedItem() + ":" + (String) time6.getSelectedItem() + ":00";
+				String signoutMax = (String) time7.getSelectedItem() + ":" + (String) time8.getSelectedItem() + ":00";
+
+				try {
+					file = new FileOutputStream(path2);
+				} catch (FileNotFoundException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				timeconfig.put("signinMin", signinMin);
+				timeconfig.put("signoutMin", signoutMin);
+				timeconfig.put("signinMax", signinMax);
+				timeconfig.put("signoutMax", signoutMax);
+				try {
+					timeconfig.store(file, "时间配置修改");
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				Toolkit.getDefaultToolkit().beep();
+				JOptionPane.showMessageDialog(null, "修改成功", "提示", JOptionPane.INFORMATION_MESSAGE);
+//				System.out.println(signinMin);
+//				System.out.println(signinMax);
+//				System.out.println(signoutMin);
+//				System.out.println(signoutMax);
+
+			}
+		});
+		jpst.add(timeset);
+
+		jpst.add(time1);
+		jpst.add(time2);
+		jpst.add(time3);
+		jpst.add(time4);
+		jpst.add(time5);
+		jpst.add(time6);
+		jpst.add(time7);
+		jpst.add(time8);
+
+		jpst.add(cbportList1);
+		jpst.add(cbportList2);
+		jpst.add(cbportList3);
+		jpst.add(cbportList4);
+
+		jpst.add(jbaudrate);
+		jpst.add(jdatabit);
+		jpst.add(jstopbit);
+		jpst.add(jcheckbit);
+		jpst.add(jsignin);
+		jpst.add(jsignout);
+		jpst.add(t1);
+		jpst.add(t2);
+		jpst.add(t3);
+		jpst.add(t4);
+		jpst.add(t5);
+		jpst.add(t6);
 
 		/**************************************************
 		 * 
@@ -361,7 +948,7 @@ class MyFrame1 extends JFrame {
 
 		JPanel pNorth = new JPanel();
 		cbportList = new JComboBox<String>();
-		cbportList.addItem("COM9");
+
 		CommPortIdentifier portId;
 		Enumeration<CommPortIdentifier> en = CommPortIdentifier.getPortIdentifiers();
 		while (en.hasMoreElements()) {
@@ -372,22 +959,31 @@ class MyFrame1 extends JFrame {
 		}
 		pNorth.add(cbportList);
 		bOpenSPort = new JButton("打开串口");
-		bOpenSPort.addActionListener(new ActionListener() {
+		bCloseSPort = new JButton("关闭串口");
+		bCloseSPort.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				simple = SimpleRW.getInstance((String)cbportList.getSelectedItem(),my);
-				System.out.println((String)cbportList.getSelectedItem());
-				simple.openPort();
-	
+				simple.closePort();
+				
+			}
+		});
+		bOpenSPort.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+//				simple = SimpleRW.getInstance((String) cbportList.getSelectedItem(), my);
+				System.out.println((String) cbportList.getSelectedItem());
+				simple.openPort((String) cbportList.getSelectedItem(),my);
+
 			}
 		});
 		pNorth.add(bOpenSPort);
+		pNorth.add(bCloseSPort);
 		lSportStatus = new JLabel("    ");
 		pNorth.add(lSportStatus);
-		add(pNorth, BorderLayout.NORTH);	
-		
-		
+		add(pNorth, BorderLayout.NORTH);
+
 		/**************************************************
 		 * 
 		 ************************ 信息查询界面**************
@@ -422,7 +1018,7 @@ class MyFrame1 extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				jpmr.remove(scrollPane_mr);
-				
+
 				String name = jtmr_query.getText();
 
 				List<Employee> list = service_e.findByName(name);
@@ -436,7 +1032,6 @@ class MyFrame1 extends JFrame {
 						xiba[i][j] = str[j];
 					}
 				}
-	
 
 				jtamr_re = new JTable(new JTableModel(xiba, my));
 				jtamr_re.setFillsViewportHeight(true);
@@ -444,8 +1039,7 @@ class MyFrame1 extends JFrame {
 				jtamr_re.getColumn("修改").setCellRenderer(buttonRenderer);
 				jtamr_re.getColumn("删除").setCellRenderer(buttonRenderer);
 				jtamr_re.addMouseListener(new JTableButtonMouseListener(jtamr_re));
-				
-				
+
 				scrollPane_mr = new JScrollPane(UIUtils.queryEmployee(jtamr_re));
 				jpmr.add(scrollPane_mr, BorderLayout.CENTER);
 				jpmr.repaint();
@@ -484,9 +1078,9 @@ class MyFrame1 extends JFrame {
 
 			}
 		});
-		
+
 		jpmr_addem.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				// TODO Auto-generated method stub
@@ -502,46 +1096,53 @@ class MyFrame1 extends JFrame {
 		jpmr.add(scrollPane_mr, BorderLayout.CENTER);
 
 		jpmr.add(jpmr_1, BorderLayout.SOUTH);
-		
-		
+
 		/**************************************************
 		 * 
 		 ************************ 考勤界面**************
 		 * 
 		 ***************************************************/
 		jpsign = new JPanel(new BorderLayout());
-		
 
 		JPanel jpsign_1 = new JPanel(new FlowLayout());
 		JButton jbsign = new JButton("开始考勤");
-		JLabel jlsign1 = new JLabel("啊啊啊啊啊啊啊啊啊啊啊？");
-		
-		Object[][] sign = new Object[1][4];
+		JButton jbStopSign = new JButton("停止考勤");
+		JLabel jlsign1 = new JLabel(new Date().toLocaleString());
 
-		jtasign = new JTable(sign, Names);
-		
+		Object[][] sign = new Object[1][4];
+		String[] Namess = { "姓名", "签到时间", "签退时间", "操作提示" };
+		jtasign = new JTable(sign, Namess);
+
 		jtasign.setRowHeight(50);
 		jtasign.setEnabled(false);
 		scrollPane_sign = new JScrollPane(jtasign);
-		
-		
+
 		jbsign.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// TODO Auto-generated method stub
+				thread = new MyThread();
+				thread.start();
+				
+			}
+		});
+		
+		jbStopSign.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TODO Auto-generated method stub
-				Thread thread = new MyThread();
-				thread.start();
-		
+				simple.setRun(false);
 			}
 		});
+
+		jpsign_1.add(jbStopSign, FlowLayout.LEFT);
+		jpsign_1.add(jbsign, FlowLayout.LEFT);
+		jpsign_1.add(jlsign1, FlowLayout.LEFT);
 		
-		
-		jpsign_1.add(jbsign,FlowLayout.LEFT);
-		jpsign_1.add(jlsign1,FlowLayout.LEFT);
-		jpsign.add(jpsign_1,BorderLayout.SOUTH);
-		jpsign.add(scrollPane_sign,BorderLayout.CENTER);
-		
+		jpsign.add(jpsign_1, BorderLayout.SOUTH);
+		jpsign.add(scrollPane_sign, BorderLayout.CENTER);
 
 		/**************************************************
 		 * 
@@ -732,7 +1333,7 @@ class MyFrame1 extends JFrame {
 			if (columnIndex != 6) {
 				return xiba[rowIndex][columnIndex];
 			} else
-				return "";		
+				return "";
 
 		}
 
@@ -797,5 +1398,4 @@ class MyFrame1 extends JFrame {
 		}
 
 	}
-
 }

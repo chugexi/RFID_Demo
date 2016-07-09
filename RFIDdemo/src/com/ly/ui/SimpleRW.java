@@ -5,10 +5,13 @@
 package com.ly.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Toolkit;
 import java.io.*;
 
 import java.util.*;
 
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 
 import com.ly.domain.Employee;
@@ -37,17 +40,13 @@ public class SimpleRW {
 	static String ID = new String();
 
 	private static SimpleRW instance;
-	private static String portname;
+	int[] portSet =  { 9600, SerialPort.DATABITS_8, SerialPort.STOPBITS_1, SerialPort.PARITY_NONE };
+	
 	private static MyFrame1 my;
-
-	public static synchronized SimpleRW getInstance(String portName, MyFrame1 myframe) {
-		if (instance == null) {
-			instance = new SimpleRW();
-		}
-		portname = portName;
-		my = myframe;
-		return instance;
-	}
+	
+	private static boolean run=true;
+	
+	
 
 	public static synchronized SimpleRW getInstance() {
 		if (instance == null) {
@@ -55,18 +54,37 @@ public class SimpleRW {
 		}
 		return instance;
 	}
+	
 
-	public void openPort() {
+	public void setRun(boolean run) {
+		SimpleRW.run = run;
+	}
+
+
+	public void openPort(String portName,MyFrame1 my) {
+		if(portName==null){
+			Toolkit.getDefaultToolkit().beep();
+			JOptionPane.showMessageDialog(null, "未选择串口", "提示", JOptionPane.INFORMATION_MESSAGE);
+			return;
+		}
+		SimpleRW.my = my;
 		portList = CommPortIdentifier.getPortIdentifiers();
 
 		while (portList.hasMoreElements()) {
 			portId = (CommPortIdentifier) portList.nextElement();
 			if (portId.getPortType() == CommPortIdentifier.PORT_SERIAL) {
-				if (portId.getName().equals(portname)) {
+				if (portId.getName().equals(portName)) {
 
 					try {
 						serialPort = (SerialPort) portId.open("SimpleWriteApp", 2000);
+						if (serialPort==null){
+							Toolkit.getDefaultToolkit().beep();
+							JOptionPane.showMessageDialog(null, "串口打开失败", "提示", JOptionPane.INFORMATION_MESSAGE);	
+							return;
+						}
 						System.out.println("打开成功");
+						Toolkit.getDefaultToolkit().beep();
+						JOptionPane.showMessageDialog(null, "串口打开成功", "提示", JOptionPane.INFORMATION_MESSAGE);
 					} catch (PortInUseException e) {
 
 					}
@@ -84,6 +102,8 @@ public class SimpleRW {
 					} catch (UnsupportedCommOperationException e) {
 					}
 				} else {
+					Toolkit.getDefaultToolkit().beep();
+					JOptionPane.showMessageDialog(null, "串口打开失败", "提示", JOptionPane.INFORMATION_MESSAGE);
 					System.out.println("打开失败");
 				}
 			}
@@ -91,17 +111,35 @@ public class SimpleRW {
 		// System.out.println("打开成功");
 	}
 
+	public void portSet(int[] portset) {
+		this.portSet = portset;
+	}
+
 	public void alwaysFindCard() {
 		try {
 			// outputStream.write(messageString.getBytes());
 			System.out.println("无限寻卡");
-			// ID = "00000000";
-			while (!(ID.equals("00000000"))) {
-				try {
-					Thread.sleep(1000);
-				} catch (Exception e) {
+			try {
+				if(serialPort==null){
+					Toolkit.getDefaultToolkit().beep();
+					JOptionPane.showMessageDialog(null, "未打开串口", "提示", JOptionPane.INFORMATION_MESSAGE);
+					return;
 				}
-				outputStream.write(cmdSeek);
+				serialPort.setSerialPortParams(portSet[0], portSet[1], portSet[2], portSet[3]);
+			} catch (UnsupportedCommOperationException e) {
+			}
+			// ID = "00000000";
+			while (run) {
+			byte[] readBuffer={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+//				try {
+//					inputStream = serialPort.getInputStream();
+//				} catch (IOException e) {
+//				}
+				try {
+					Thread.sleep(2000);
+				} catch (Exception e) {
+				}				
+					outputStream.write(cmdSeek);				
 				// byte[] readBuffer = new byte[5];
 				try {
 					Thread.sleep(500);
@@ -130,6 +168,10 @@ public class SimpleRW {
 					// System.out.println(new String(readBuffer));
 				} catch (IOException e) {
 				}
+				for(int i=0;i<readBuffer.length;i++){
+					readBuffer[i] = 0x00;
+				}
+//				readBuffer={0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 				System.out.println("防冲突");
 				outputStream.write(cmdAC);
 				try {
@@ -150,26 +192,56 @@ public class SimpleRW {
 					}
 					if (Arrays.equals(readBuffer, cmdNoCard)) {
 						System.out.println("无卡");
-					} else {
+						continue;
+					} 
+					
 						ID = sHex.SelectID(readBuffer);
 						EmployeeService es = new EmployeeServiceImpl();
 						SignService ss = new SignServiceImpl();
 
 						Employee em = es.findByRfid(ID);
+						if (em == null) {
+//							Toolkit.getDefaultToolkit().beep();
+//							JOptionPane.showMessageDialog(null, "信息未匹配", "提示", JOptionPane.INFORMATION_MESSAGE);
+							
+//							readBuffer = cmdNoCard;
+							
+							JOptionPane op = new JOptionPane("信息未匹配",JOptionPane.INFORMATION_MESSAGE);
+					        final JDialog dialog = op.createDialog("本对话框将在3秒后关闭");
+					        
+					        // 创建一个新计时器
+					        Timer timer = new Timer();
 
+					        // 3秒 后执行该任务
+					        timer.schedule(new TimerTask() {
+					            public void run() {
+					                dialog.setVisible(false);
+					                dialog.dispose();
+					            }
+					        }, 3000);
+
+					        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+					        dialog.setAlwaysOnTop(true);
+					        dialog.setModal(false);
+					        dialog.setVisible(true);
+							continue;
+						}
+						
 						ss.sign(em.getId());
 
 						my.jpsign.remove(my.scrollPane_sign);
-						my.scrollPane_sign = new JScrollPane(UIUtils.refresh(my.jtasign));
+						my.scrollPane_sign = new JScrollPane(UIUtils.refresh2(my.jtasign));
 						my.jpsign.add(my.scrollPane_sign, BorderLayout.CENTER);
 						my.jpsign.repaint();
 						my.jpsign.validate();
-					}
+					
 					// System.out.println(sHex);
 				} catch (IOException e) {
+					e.printStackTrace();
 				}
 			}
 		} catch (IOException e) {
+			e.printStackTrace();
 		}
 
 	}
@@ -179,7 +251,22 @@ public class SimpleRW {
 		try {
 			// outputStream.write(messageString.getBytes());
 			System.out.println("寻卡");
-			outputStream.write(cmdSeek);
+			// ID = "00000000";
+			try {
+				if(serialPort==null){
+					Toolkit.getDefaultToolkit().beep();
+					JOptionPane.showMessageDialog(null, "未打开串口", "提示", JOptionPane.INFORMATION_MESSAGE);
+					return "";
+				}
+				serialPort.setSerialPortParams(portSet[0], portSet[1], portSet[2], portSet[3]);
+			} catch (UnsupportedCommOperationException e) {
+			}
+
+			try {
+				Thread.sleep(1000);
+			} catch (Exception e) {
+			}			
+				outputStream.write(cmdSeek);			
 			// byte[] readBuffer = new byte[5];
 			try {
 				Thread.sleep(500);
@@ -189,12 +276,21 @@ public class SimpleRW {
 				while (inputStream.available() > 0) {
 					// int numBytes = inputStream.read(readBuffer);
 					// System.out.println("get "+numBytes+" bytes");
-					byte bbb = (byte) inputStream.read();
-					System.out.println("get byte:" + Integer.toHexString(bbb & 0xff));
+					int numBytes = inputStream.read(readBuffer);
+					// System.out.println("get byte:"+
+					// Integer.toHexString(readBuffer));
 					// if (bbb==0){
 					// serialPort.close();
 					// }
 				}
+				sHex.printHexString(readBuffer);
+				if (Arrays.equals(readBuffer, cmdNoCard)) {
+					System.out.println("无卡");
+				}
+				// System.out.println(sHex);
+				// if(sHex.indexOf()){
+				// System.out.println("无卡");
+				// }
 				// System.out.println(new String(readBuffer));
 			} catch (IOException e) {
 			}
@@ -208,135 +304,36 @@ public class SimpleRW {
 				while (inputStream.available() > 0) {
 					// int numBytes = inputStream.read(readBuffer);
 					// System.out.println("get "+numBytes+" bytes");
-					byte bbb = (byte) inputStream.read();
-					System.out.println("get byte:" + Integer.toHexString(bbb & 0xff));
-					return Integer.toHexString(bbb & 0xff);
+					int numBytes = inputStream.read(readBuffer);
+					sHex.printHexString(readBuffer);
+					// System.out.println("get byte:"+
+					// Integer.toHexString(readBuffer));
 					// if (bbb==0){
 					// serialPort.close();
 					// }
 				}
-				// System.out.println(new String(readBuffer));
+				if (Arrays.equals(readBuffer, cmdNoCard)) {
+					System.out.println("无卡");
+				} else {
+					ID = sHex.SelectID(readBuffer);
+					return ID;
+				}
+				// System.out.println(sHex);
 			} catch (IOException e) {
 			}
+
 		} catch (IOException e) {
 		}
-		serialPort.close();
-		return null;
+		
+		return "";
 
 	}
-
-	public void haha() {
-		int i = 0;
-		while (true) {
-			i++;
-			if (i == 2) {
-
-				my.jpsign.remove(my.scrollPane_sign);
-				my.scrollPane_sign = new JScrollPane(UIUtils.refresh(my.jtasign));
-				my.jpsign.add(my.scrollPane_sign, BorderLayout.CENTER);
-				my.jpsign.repaint();
-				my.repaint();
-				System.out.println("22222");
-				i = 0;
-
-			}
-
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+	
+public void closePort(){
+	if(serialPort==null){
+		Toolkit.getDefaultToolkit().beep();
+		JOptionPane.showMessageDialog(null, "未打开串口", "提示", JOptionPane.INFORMATION_MESSAGE);
 	}
-
-	// public static void main(String[] args) {
-	// my.jpsign.remove(my.scrollPane_sign);
-	// my.scrollPane_sign = new JScrollPane(UIUtils.refresh( my.jtasign));
-	// my.jpsign.add(my.scrollPane_sign,BorderLayout.CENTER);
-	// my.jpsign.repaint();
-	// my.repaint();
-	//
-	//
-	//
-	//
-	// }
-	// // SerialPort serialPort;
-	// portList = CommPortIdentifier.getPortIdentifiers();
-	//
-	// while (portList.hasMoreElements()) {
-	// portId = (CommPortIdentifier) portList.nextElement();
-	// if (portId.getPortType() == CommPortIdentifier.PORT_SERIAL) {
-	// if (portId.getName().equals("COM8")) {
-	// // if (portId.getName().equals("/dev/term/a")) {
-	// try {
-	// serialPort = (SerialPort) portId.open("SimpleWriteApp", 2000);
-	// } catch (PortInUseException e) {
-	// }
-	// try {
-	// outputStream = serialPort.getOutputStream();
-	// } catch (IOException e) {
-	// }
-	// try {
-	// inputStream = serialPort.getInputStream();
-	// } catch (IOException e) {
-	// }
-	//
-	// // serialPort.notifyOnDataAvailable(true);
-	//
-	// try {
-	// serialPort.setSerialPortParams(9600, SerialPort.DATABITS_8,
-	// SerialPort.STOPBITS_1,
-	// SerialPort.PARITY_NONE);
-	// } catch (UnsupportedCommOperationException e) {
-	// }
-	// try {
-	// // outputStream.write(messageString.getBytes());
-	// System.out.println("寻卡");
-	// outputStream.write(cmdSeek);
-	// // byte[] readBuffer = new byte[5];
-	// try {
-	// Thread.sleep(500);
-	// } catch (Exception e) {
-	// }
-	// try {
-	// while (inputStream.available() > 0) {
-	// // int numBytes = inputStream.read(readBuffer);
-	// // System.out.println("get "+numBytes+" bytes");
-	// byte bbb = (byte) inputStream.read();
-	// System.out.println("get byte:" + Integer.toHexString(bbb & 0xff));
-	// // if (bbb==0){
-	// // serialPort.close();
-	// // }
-	// }
-	// // System.out.println(new String(readBuffer));
-	// } catch (IOException e) {
-	// }
-	// System.out.println("防冲突");
-	// outputStream.write(cmdAC);
-	// try {
-	// Thread.sleep(500);
-	// } catch (Exception e) {
-	// }
-	// try {
-	// while (inputStream.available() > 0) {
-	// // int numBytes = inputStream.read(readBuffer);
-	// // System.out.println("get "+numBytes+" bytes");
-	// byte bbb = (byte) inputStream.read();
-	// System.out.println("get byte:" + Integer.toHexString(bbb & 0xff));
-	// // if (bbb==0){
-	// // serialPort.close();
-	// // }
-	// }
-	// // System.out.println(new String(readBuffer));
-	// } catch (IOException e) {
-	// }
-	// } catch (IOException e) {
-	// }
-	// serialPort.close();
-	// }
-	// }
-	// }
-	// }
-
+	serialPort.close();
+}
 }

@@ -20,8 +20,8 @@ public class EmployeeDaoImpl implements EmployeeDao {
 	public void add(Employee employee){
 		try{
 		QueryRunner runner = new QueryRunner(JdbcUtils.getDataSource());
-		String sql="insert into employee(id,name,gender,position,department) values(?,?,?,?,?)";
-		Object params[] = {employee.getId(),employee.getName(),employee.getGender(),employee.getPosition(),employee.getDepartment()};
+		String sql="insert into employee(id,name,gender,position,department,rfid_id) values(?,?,?,?,?,?)";
+		Object params[] = {employee.getId(),employee.getName(),employee.getGender(),employee.getPosition(),employee.getDepartment(),employee.getRfid_id()};
 		runner.update(sql, params);
 		}catch(Exception e){
 			throw new RuntimeException(e);
