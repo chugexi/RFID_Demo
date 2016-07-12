@@ -82,9 +82,9 @@ public class SimpleRW {
 							JOptionPane.showMessageDialog(null, "串口打开失败", "提示", JOptionPane.INFORMATION_MESSAGE);	
 							return;
 						}
-						System.out.println("打开成功");
-						Toolkit.getDefaultToolkit().beep();
-						JOptionPane.showMessageDialog(null, "串口打开成功", "提示", JOptionPane.INFORMATION_MESSAGE);
+//						System.out.println("打开成功");
+//						Toolkit.getDefaultToolkit().beep();
+//						JOptionPane.showMessageDialog(null, "串口打开成功", "提示", JOptionPane.INFORMATION_MESSAGE);
 					} catch (PortInUseException e) {
 
 					}
@@ -116,9 +116,12 @@ public class SimpleRW {
 	}
 
 	public void alwaysFindCard() {
+		EmployeeService es = new EmployeeServiceImpl();
+		SignService ss = new SignServiceImpl();
 		try {
 			// outputStream.write(messageString.getBytes());
 			System.out.println("无限寻卡");
+			
 			try {
 				if(serialPort==null){
 					Toolkit.getDefaultToolkit().beep();
@@ -196,8 +199,7 @@ public class SimpleRW {
 					} 
 					
 						ID = sHex.SelectID(readBuffer);
-						EmployeeService es = new EmployeeServiceImpl();
-						SignService ss = new SignServiceImpl();
+						
 
 						Employee em = es.findByRfid(ID);
 						if (em == null) {

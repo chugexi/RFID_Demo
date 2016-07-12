@@ -50,8 +50,8 @@ public class AttenceDaoImpl implements AttenceDao {
 		try {
 			QueryRunner runner = new QueryRunner(JdbcUtils.getDataSource());
 			String sql = "update attence set signouttime=?,handletime=?,result=? where day_id=?";
-			Object params[] = { attence.getSignouttime(), attence.getHandletime(), attence.getDay_id(),
-					attence.getResult() };
+			Object params[] = { attence.getSignouttime(), attence.getHandletime(),attence.getResult(),attence.getDay_id(),
+					};
 			runner.update(sql, params);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -117,7 +117,7 @@ public class AttenceDaoImpl implements AttenceDao {
 	public List<Attence> getOneDayAll(String day){
 		try {
 			QueryRunner runner = new QueryRunner(JdbcUtils.getDataSource());
-			String sql = "select * from attence whewe day_id like ? order by handletime desc";
+			String sql = "select * from attence where day_id like ? order by handletime desc";
 			return (List<Attence>) runner.query(sql, day + "%", new BeanListHandler(Attence.class));
 		} catch (Exception e) {
 			throw new RuntimeException(e);

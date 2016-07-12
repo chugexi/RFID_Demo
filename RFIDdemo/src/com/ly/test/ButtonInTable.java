@@ -1,4 +1,5 @@
 package com.ly.test;
+
 import java.awt.BorderLayout;
 
 import java.awt.Component;
@@ -12,6 +13,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 
 import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Properties;
 
 import javax.swing.JButton;
 
@@ -29,208 +35,244 @@ import javax.swing.table.AbstractTableModel;
 
 import javax.swing.table.TableCellRenderer;
 
+import org.junit.Test;
+
+import com.ly.service.SignService;
+import com.ly.service.impl.SignServiceImpl;
+import com.ly.utils.TimeUtil2;
+import com.ly.utils.TimeUtils;
 
 public class ButtonInTable {
-
-	
-
-
-
-
-
-		public static void main(String[] args) {
-
-			final ButtonInTable example = new ButtonInTable();
-
-	        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-
-	            public void run() {
-
-	            	example.createAndShowGUI();
-
-	            }
-
-	        });
-
+	private static Properties timeconfig = new Properties();
+	@Test
+	   public void aaa(){
+		try {
+			timeconfig.load(SignServiceImpl.class.getClassLoader().getResourceAsStream("time.properties"));
+		} catch (IOException e) {
+			throw new RuntimeException();
 		}
-
+//		System.out.println(timeconfig.getProperty("signinMin"));
+//		System.out.println(timeconfig.getProperty("signinMax"));
+//		System.out.println( timeconfig.getProperty("signoutMin"));
+//		System.out.println(timeconfig.getProperty("signoutMax"));
+		String signinMax = timeconfig.getProperty("signinMax");
+		String inMax[] = signinMax.split(":");
+		String delay =  timeconfig.getProperty("lateDelay");
+		int i;
+		switch (delay) {
+		case "0":
+			i = (Integer.parseInt(inMax[0]))+100;
+			inMax[0] = i +"";
+			break;
+		case "1":
+			i = (Integer.parseInt(inMax[0]))+1;
+			inMax[0] = i +"";
+			break;
+		case "2":
+			i = (Integer.parseInt(inMax[0]))+2;
+			inMax[0] = i +"";
+			break;
+		case "3":
+			i = (Integer.parseInt(inMax[0]))+3;
+			inMax[0] = i +"";
+			break;
+		default:
+			break;
+		}
 		
+		String latetime = inMax[0]+":"+inMax[1]+":"+inMax[2];
+		System.out.println(latetime);
+	   }
+	@Test
+	public void sfd(){
+		SignServiceImpl ss = new SignServiceImpl();
+		ss.sign("456456");
+	}
+	@Test
+	public void dfs(){
+		Date date = new Date();
+		if(TimeUtil2.isInDate(date, "16:55", "17:01")){
+			System.out.println("wocao ");
+		}
+	}
+	@Test
+	public void dsfs(){
+		SignService ss = new SignServiceImpl();
+		ss.sign("56456");
+	}
+	public static void main(String[] args) {
 
-		private void createAndShowGUI() {
+		final ButtonInTable example = new ButtonInTable();
 
-	        JFrame frame = new JFrame("Button Example");
+		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 
-	        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			public void run() {
 
-	        
+				example.createAndShowGUI();
 
-	        JTable table = new JTable(new JTableModel()); 
+			}
 
-	        JScrollPane scrollPane = new JScrollPane(table);
+		});
 
-			table.setFillsViewportHeight(true);	
+	}
 
-			
+	private void createAndShowGUI() {
 
-			TableCellRenderer buttonRenderer = new JTableButtonRenderer();
+		JFrame frame = new JFrame("Button Example");
 
-			table.getColumn("Button1").setCellRenderer(buttonRenderer);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-			table.getColumn("Button2").setCellRenderer(buttonRenderer);
+		JTable table = new JTable(new JTableModel());
 
-			table.addMouseListener(new JTableButtonMouseListener(table));
+		JScrollPane scrollPane = new JScrollPane(table);
 
-	        
+		table.setFillsViewportHeight(true);
 
-	        frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
+		TableCellRenderer buttonRenderer = new JTableButtonRenderer();
 
-	        frame.getContentPane().setPreferredSize(new Dimension(500, 200));
+		table.getColumn("Button1").setCellRenderer(buttonRenderer);
 
-	        frame.pack();
+		table.getColumn("Button2").setCellRenderer(buttonRenderer);
 
-	        frame.setVisible(true);
+		table.addMouseListener(new JTableButtonMouseListener(table));
+
+		frame.getContentPane().add(scrollPane, BorderLayout.CENTER);
+
+		frame.getContentPane().setPreferredSize(new Dimension(500, 200));
+
+		frame.pack();
+
+		frame.setVisible(true);
+
+	}
+
+	public static class JTableModel extends AbstractTableModel {
+
+		private static final long serialVersionUID = 1L;
+
+		private static final String[] COLUMN_NAMES = new String[] { "Id", "Stuff", "Button1", "Button2" };
+
+		private static final Class<?>[] COLUMN_TYPES = new Class<?>[] { Integer.class, String.class, JButton.class,
+				JButton.class };
+
+		@Override
+		public int getColumnCount() {
+
+			return COLUMN_NAMES.length;
 
 		}
 
-		
+		@Override
+		public int getRowCount() {
 
-		public static class JTableModel extends AbstractTableModel {
-
-			private static final long serialVersionUID = 1L;
-
-			private static final String[] COLUMN_NAMES = new String[] {"Id", "Stuff", "Button1", "Button2"};
-
-			private static final Class<?>[] COLUMN_TYPES = new Class<?>[] {Integer.class, String.class, JButton.class,  JButton.class};
-
-			
-
-			@Override public int getColumnCount() {
-
-				return COLUMN_NAMES.length;
-
-			}
-
-
-
-			@Override public int getRowCount() {
-
-				return 4;
-
-			}
-
-			
-
-			@Override public String getColumnName(int columnIndex) {
-
-		        return COLUMN_NAMES[columnIndex];
-
-		    }
-
-			
-
-			@Override public Class<?> getColumnClass(int columnIndex) {
-
-				return COLUMN_TYPES[columnIndex];
-
-			}
-
-
-
-			@Override public Object getValueAt(final int rowIndex, final int columnIndex) {
-
-				switch (columnIndex) {
-
-					case 0: return rowIndex;
-
-					case 1: return "Text for "+rowIndex;
-
-					case 2: // fall through
-
-					case 3: final JButton button = new JButton(COLUMN_NAMES[columnIndex]);
-
-							button.addActionListener(new ActionListener() {
-
-								public void actionPerformed(ActionEvent arg0) {
-
-									JOptionPane.showMessageDialog(JOptionPane.getFrameForComponent(button), 
-
-											"Button clicked for row "+rowIndex);
-
-								}
-
-							});
-
-							return button;
-
-					default: return "Error";
-
-				}
-
-			}	
+			return 4;
 
 		}
 
+		@Override
+		public String getColumnName(int columnIndex) {
 
+			return COLUMN_NAMES[columnIndex];
 
-		private static class JTableButtonRenderer implements TableCellRenderer {		
+		}
 
-			@Override public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+		@Override
+		public Class<?> getColumnClass(int columnIndex) {
 
-				JButton button = (JButton)value;
+			return COLUMN_TYPES[columnIndex];
 
-				if (isSelected) {
+		}
 
-					button.setForeground(table.getSelectionForeground());
+		@Override
+		public Object getValueAt(final int rowIndex, final int columnIndex) {
 
-					button.setBackground(table.getSelectionBackground());
+			switch (columnIndex) {
 
-			    } else {
+			case 0:
+				return rowIndex;
 
-			    	button.setForeground(table.getForeground());
+			case 1:
+				return "Text for " + rowIndex;
 
-			    	button.setBackground(UIManager.getColor("Button.background"));
+			case 2: // fall through
 
-			    }
+			case 3:
+				final JButton button = new JButton(COLUMN_NAMES[columnIndex]);
 
-				return button;	
+				button.addActionListener(new ActionListener() {
+
+					public void actionPerformed(ActionEvent arg0) {
+
+						JOptionPane.showMessageDialog(JOptionPane.getFrameForComponent(button),
+
+								"Button clicked for row " + rowIndex);
+
+					}
+
+				});
+
+				return button;
+
+			default:
+				return "Error";
 
 			}
 
 		}
 
-		
+	}
 
-		private static class JTableButtonMouseListener extends MouseAdapter {
+	private static class JTableButtonRenderer implements TableCellRenderer {
 
-			private final JTable table;
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+				int row, int column) {
 
-			
+			JButton button = (JButton) value;
 
-			public JTableButtonMouseListener(JTable table) {
+			if (isSelected) {
 
-				this.table = table;
+				button.setForeground(table.getSelectionForeground());
+
+				button.setBackground(table.getSelectionBackground());
+
+			} else {
+
+				button.setForeground(table.getForeground());
+
+				button.setBackground(UIManager.getColor("Button.background"));
 
 			}
 
+			return button;
 
+		}
 
-			public void mouseClicked(MouseEvent e) {
+	}
 
-				int column = table.getColumnModel().getColumnIndexAtX(e.getX());
+	private static class JTableButtonMouseListener extends MouseAdapter {
 
-				int row    = e.getY()/table.getRowHeight(); 
+		private final JTable table;
 
+		public JTableButtonMouseListener(JTable table) {
 
+			this.table = table;
 
-				if (row < table.getRowCount() && row >= 0 && column < table.getColumnCount() && column >= 0) {
+		}
 
-				    Object value = table.getValueAt(row, column);
+		public void mouseClicked(MouseEvent e) {
 
-				    if (value instanceof JButton) {
+			int column = table.getColumnModel().getColumnIndexAtX(e.getX());
 
-				    	((JButton)value).doClick();
+			int row = e.getY() / table.getRowHeight();
 
-				    }
+			if (row < table.getRowCount() && row >= 0 && column < table.getColumnCount() && column >= 0) {
+
+				Object value = table.getValueAt(row, column);
+
+				if (value instanceof JButton) {
+
+					((JButton) value).doClick();
 
 				}
 
@@ -240,4 +282,4 @@ public class ButtonInTable {
 
 	}
 
-
+}
