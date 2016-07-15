@@ -1,7 +1,9 @@
 package com.ly.service.impl;
 
 import java.awt.Toolkit;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -19,6 +21,7 @@ import com.ly.domain.Attence;
 import com.ly.domain.Employee;
 import com.ly.factory.DaoFactory;
 import com.ly.service.SignService;
+import com.ly.test.JarTool;
 import com.ly.utils.JdbcUtils;
 import com.ly.utils.TimeUtil2;
 import com.ly.utils.TimeUtils;
@@ -31,10 +34,13 @@ public class SignServiceImpl implements SignService {
 	private long time;
 	private Date date = new Date();
 	private static Properties timeconfig = new Properties();
-
+	static String realpath;
 	public void sign(String id) {
 		try {
-			timeconfig.load(SignServiceImpl.class.getClassLoader().getResourceAsStream("time.properties"));
+			realpath = JarTool.getJarPath();
+			realpath = realpath.replace("\\", "/");			
+			InputStream in = new FileInputStream(realpath+"/time.properties");
+			timeconfig.load(in);
 		} catch (IOException e) {
 			throw new RuntimeException();
 		}
@@ -217,5 +223,10 @@ public class SignServiceImpl implements SignService {
 	public List<Attence> getOneDayAll(String day) {
 		return adao.getOneDayAll(day);
 	}
+	
+	public List<Attence> findById(String id) {
+		return adao.findById(id);
+	}
+	
 
 }

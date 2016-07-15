@@ -50,6 +50,36 @@ public class UIUtils {
 		
 	}
 	
+public static JTable refresh3(JTable jtable,String id){
+		
+		myjtable = jtable;
+		SignService service = new SignServiceImpl();
+		List<Attence> list = service.findById(id);
+		Object[][] xiba = new Object[list.size()][4];
+		for (int i = 0; i < list.size(); i++) {
+			Attence attence = list.get(i);
+			String[] str = { attence.getName(), new Date(attence.getSignintime()).toLocaleString(),
+					new Date(attence.getSignouttime()).toLocaleString(),
+					attence.getResult() };
+			if (str[2].equals(new Date(0).toLocaleString())) {
+				str[2] = "ÎÞ";
+			}
+			for (int j = 0; j < 4; j++) {
+				xiba[i][j] = str[j];
+			}
+		}
+		myjtable = new JTable(xiba, Names);
+		myjtable.setRowHeight(50);
+		myjtable.setEnabled(false);
+		DefaultTableCellRenderer tcr = new DefaultTableCellRenderer();
+		tcr.setHorizontalAlignment(SwingConstants.CENTER);
+		myjtable.setDefaultRenderer(Object.class, tcr);
+		myjtable.setFont(new Font("ËÎÌå", 1, 15));
+		
+		return myjtable;
+		
+	}
+	
 	public static JTable refresh2(JTable jtable){
 		
 		myjtable = jtable;

@@ -121,8 +121,19 @@ public class AttenceDaoImpl implements AttenceDao {
 			return (List<Attence>) runner.query(sql, day + "%", new BeanListHandler(Attence.class));
 		} catch (Exception e) {
 			throw new RuntimeException(e);
-		}
+		}	
 		
+		
+	}
+	
+	public List<Attence> findById(String id){
+		try {
+			QueryRunner runner = new QueryRunner(JdbcUtils.getDataSource());
+			String sql = "select * from attence where day_id like ? order by handletime desc";
+			return (List<Attence>) runner.query(sql,  "%" + id, new BeanListHandler(Attence.class));
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}	
 		
 		
 	}

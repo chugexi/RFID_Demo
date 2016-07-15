@@ -19,4 +19,6 @@ public interface AttenceDao {
 	Attence find(String day_id);
 	
 	List<Attence> getOneDayAll(String day);
+	
+	List<Attence> findById(String id);
 }

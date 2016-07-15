@@ -5,19 +5,39 @@ import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
+import com.ly.test.JarTool;
+import com.ly.ui.MyFrame1;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 public class JdbcUtils {
 	
 
-		private static DataSource ds;
+		private static ComboPooledDataSource ds = null;
 		
 		private static ThreadLocal<Connection> tl = new ThreadLocal<Connection>(); 
+		
 		static{
-			ds = new ComboPooledDataSource();
+			String realpath = JarTool.getJarPath();
+			
+			realpath = realpath.replace("\\", "/");
+			System.out.println("jdbc:sqlite:"+realpath+"/rfid.db");
+			try{
+				ds = new ComboPooledDataSource();
+				ds.setDriverClass("org.sqlite.JDBC");
+				ds.setJdbcUrl("jdbc:sqlite:"+realpath+"/rfid.db");
+				ds.setUser("");
+				ds.setPassword("");
+				ds.setMaxPoolSize(30);
+				ds.setMinPoolSize(5);
+				ds.setInitialPoolSize(10);
+			}catch (Exception e) {				
+				throw new ExceptionInInitializerError(e);
+			}
+			
 		}
 		
 		public static DataSource getDataSource(){
+			
 			return ds;
 		}
 		

@@ -17,5 +17,7 @@ public interface SignService {
 	List<Attence> getAll();
 	
 	List<Attence> getOneDayAll(String day);
+	
+	List<Attence> findById(String id);
 
 }

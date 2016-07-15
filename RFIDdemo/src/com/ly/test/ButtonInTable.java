@@ -14,6 +14,7 @@ import java.awt.event.MouseAdapter;
 
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -85,8 +86,8 @@ public class ButtonInTable {
 	   }
 	@Test
 	public void sfd(){
-		SignServiceImpl ss = new SignServiceImpl();
-		ss.sign("456456");
+		URL url = this.getClass().getClassLoader().getResource("rfid.db");
+		System.out.println(url);
 	}
 	@Test
 	public void dfs(){
